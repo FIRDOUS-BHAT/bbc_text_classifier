@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>BBC News Text Classifier</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        textarea { width: 100%; height: 200px; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; cursor: pointer; }
+        #result { margin-top: 20px; padding: 10px; border: 1px solid #ddd; background: #f9f9f9; display: none; }
+        .prob-item { margin: 5px 0; }
+        .prob-bar { background: #e0e0e0; height: 20px; border-radius: 10px; overflow: hidden; }
+        .prob-fill { background: #4caf50; height: 100%; transition: width 0.3s; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>BBC News Text Classifier</h1>
+    <p>Enter news text to classify into one of: {{ categories|join(', ') }}.</p>
+    
+    <form id="predictForm">
+        <textarea name="text" placeholder="Paste article here..." required></textarea><br><br>
+        <button type="submit">Classify</button>
+    </form>
+    
+    <div id="result">
+        <h3 id="pred-title"></h3>
+        <h4>Probabilities:</h4>
+        <div id="probs-list"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictForm');
+        const resultDiv = document.getElementById('result');
+        const predTitle = document.getElementById('pred-title');
+        const probsList = document.getElementById('probs-list');
+
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const text = formData.get('text');
+            if (!text.trim()) return;
+
+            try {
+                const response = await fetch('/predict', { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Prediction failed');
+                const data = await response.json();
+                
+                predTitle.innerHTML = `Prediction: <strong>${data.category}</strong> (Confidence: ${data.confidence})`;
+                probsList.innerHTML = Object.entries(data.all_probs).map(([cat, prob]) => 
+                    `<div class="prob-item">${cat}: ${(prob * 100).toFixed(1)}% 
+                        <div class="prob-bar"><div class="prob-fill" style="width: ${prob * 100}%"></div></div>
+                    </div>`
+                ).join('');
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                predTitle.innerHTML = `<span class="error">Error: ${error.message}</span>`;
+                resultDiv.style.display = 'block';
+            }
+        };
+
+        // Sample text
+        document.querySelector('textarea').value = "The stock market rallied after the earnings report.";
+    </script>
+</body>
+</html>
