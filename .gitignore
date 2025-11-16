@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+.history
+api/__pycache__
+notebooks/model_artifacts/model.pkl
