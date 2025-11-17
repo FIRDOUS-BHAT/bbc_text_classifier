@@ -11,3 +11,5 @@ wheels/
 .history
 api/__pycache__
 notebooks/model_artifacts/model.pkl
+uv.lock
+.python-version
